@@ -64,7 +64,10 @@ def plot_numerical_distributions(data, save_path):
         axes[j].set_visible(False)
 
     plt.tight_layout()
+
     plt.savefig(save_path)
+
+    plt.close()
 
 
 def plot_categorical(data, save_path):
@@ -94,7 +97,10 @@ def plot_categorical(data, save_path):
 
     # Specify the overall size of the figure (width, height in inches)
     fig, axes = plt.subplots(
-        nrows=num_rows, ncols=num_cols, figsize=(30, 6 * num_rows), subplot_kw={"aspect": "equal"}
+        nrows=num_rows,
+        ncols=num_cols,
+        figsize=(30, 6 * num_rows),
+        subplot_kw={"aspect": "equal"},
     )
 
     # Flatten axes array for easy iteration if it's multidimensional
@@ -139,7 +145,11 @@ def plot_categorical(data, save_path):
             for label, freq in zip(string_list, frequency_list)
         ]
         axes_flat[i].legend(
-            patches, legend_labels, title=column_name, loc="upper left", bbox_to_anchor=(1, 1)
+            patches,
+            legend_labels,
+            title=column_name,
+            loc="upper left",
+            bbox_to_anchor=(1, 1),
         )
 
     # Hide any unused subplot axes
@@ -151,6 +161,8 @@ def plot_categorical(data, save_path):
 
     # Save the plot
     plt.savefig(save_path)
+
+    plt.close()
 
 
 def plot_correlation_matrix(data, save_path, threshold=False):
@@ -199,6 +211,8 @@ def plot_correlation_matrix(data, save_path, threshold=False):
     # Save the plot
     plt.savefig(save_path)
 
+    plt.close()
+
 
 def plot_feature_correlation(dataframe, target_variable, save_path):
     """
@@ -242,6 +256,61 @@ def plot_feature_correlation(dataframe, target_variable, save_path):
     # Save the plot
     plt.savefig(save_path)
 
+    plt.close()
+
+
+def normality_check(data, target_variable, save_path):
+    df = data.select_dtypes(include=["float64", "int64"])
+    num_plots = len(df.columns)
+    num_cols = 4  # Number of plots per row
+
+    num_rows = (num_plots + num_cols - 1) // num_cols  # Calculate the number of rows needed
+
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(5 * num_cols, 4 * num_rows))
+    axes = axes.flatten()
+
+    for i, colname in enumerate(df.columns):
+        ax = axes[i]
+
+        sns.histplot(data=df[colname], color="#3ac5fe", kde=False, stat="density", ax=ax)
+        sns.kdeplot(data=df[colname], color="#F76693", ax=ax)
+
+        # Calculate skewness of the target variable
+        skewness_value = round(data[colname].skew(), 2)
+
+        # Determine skewness level
+        textbox_text = ""
+        if -0.5 < skewness_value < 0.5:
+            textbox_text = "Symmetrical"
+        elif (-1.0 < skewness_value < -0.5) or (0.5 < skewness_value < 1.0):
+            textbox_text = "Moderate"
+        else:
+            textbox_text = "Highly"
+
+        # Add textbox annotation for skewness level
+        ax.text(
+            0.95,
+            0.95,
+            f"{textbox_text}\nSkewness: {skewness_value}",
+            transform=ax.transAxes,
+            fontsize=12,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=dict(facecolor="lightgray", alpha=0.5),
+        )
+
+    # Hide any unused subplot axes
+    for j in range(num_plots, len(axes)):
+        axes[j].axis("off")
+
+    # Adjust layout
+    plt.tight_layout()
+
+    # Save the plot
+    plt.savefig(save_path)
+
+    plt.close()
+
 
 def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
     """
@@ -276,6 +345,7 @@ def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
     cat_stats_filepath = os.path.join(foldername, "Categorical_Data_Stats.png")
     corr_stats_filepath = os.path.join(foldername, "Correlation_Matrix_Stats.png")
     corr_feature_stats_filepath = os.path.join(foldername, "Correlation_Features_Stats.png")
+    norm_stats_filepath = os.path.join(foldername, "Normal_Distribution_Stats.png")
 
     # Plotting numerical data distributions
     plot_numerical_distributions(data, num_stats_filepath)
@@ -289,3 +359,12 @@ def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
     if target_variable:
         # Plotting feature correlation
         plot_feature_correlation(data, target_variable, corr_feature_stats_filepath)
+
+    normality_check(data, target_variable, norm_stats_filepath)
+
+
+data_analysis_workflow("Ames_Housing_Data1.tsv", "SalePrice", sep="\t")
+data_analysis_workflow("supermarket_sales.csv", "Unit price")
+data_analysis_workflow("youth_tobaco.csv")
+data_analysis_workflow("obesity.csv", "Weight")
+data_analysis_workflow("fuel.csv", "FUEL CONSUMPTION")
