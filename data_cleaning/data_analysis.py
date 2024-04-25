@@ -363,8 +363,3 @@ def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
     normality_check(data, target_variable, norm_stats_filepath)
 
 
-data_analysis_workflow("Ames_Housing_Data1.tsv", "SalePrice", sep="\t")
-data_analysis_workflow("supermarket_sales.csv", "Unit price")
-data_analysis_workflow("youth_tobaco.csv")
-data_analysis_workflow("obesity.csv", "Weight")
-data_analysis_workflow("fuel.csv", "FUEL CONSUMPTION")
