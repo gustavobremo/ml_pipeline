@@ -312,6 +312,30 @@ def normality_check(data, target_variable, save_path):
     plt.close()
 
 
+def plot_missing_values(data,data_filename):
+
+    filename_prefix = data_filename.split(".")[0]
+    plot_filename = "missing_values_stats.png"
+    save_path = os.path.join("data_statistics",filename_prefix,plot_filename)
+
+    total = data.isnull().sum().sort_values(ascending=False)
+
+    total[total > 1].plot(kind="bar", figsize = (8,6), color="#3ac5fe", fontsize = 10)
+
+    plt.xlabel("Columns", fontsize = 20)
+    plt.ylabel("Count", fontsize = 20)
+    plt.title("Total Missing Values", fontsize = 20)
+
+    plt.tight_layout()
+
+    # Save the plot
+    plt.savefig(save_path)
+
+    print("Missing values plot saved")
+
+    plt.close()
+
+
 def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
     """
     Perform a machine learning workflow including data loading, statistics plotting, and correlation analysis.
@@ -361,5 +385,3 @@ def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
         plot_feature_correlation(data, target_variable, corr_feature_stats_filepath)
 
     normality_check(data, target_variable, norm_stats_filepath)
-
-
