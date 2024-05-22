@@ -32,6 +32,28 @@ def read_data(filename, separator=""):
         print(f"An unexpected error occurred: {e}")
 
 
+def describe_dataframe(data):
+    """
+    Generates a textual summary of the dataset including its shape, column names, data types,
+    total missing values, and basic statistics.
+
+    Args:
+        data (DataFrame): The dataset to describe.
+
+    Returns:
+        str: Textual summary of the dataset.
+    """
+    description = ""
+    spacer = "-" * 30
+    description += f"ROWS and COLUMNS \n{spacer}\n{data.shape}\n\n"
+    description += f"COLUMN NAMES \n{spacer}\n{data.columns.tolist()}\n\n"
+    description += f"DATA TYPES \n{spacer}\n{data.dtypes}\n\n"
+    description += f"TOTAL MISSING VALUES \n{spacer}\n{data.isnull().sum()}\n\n"
+    description += f"STATISTICS \n{spacer}\n{data.describe()}"
+
+    return description
+
+
 def plot_numerical_distributions(data, save_path):
     """
     Plot boxplots to visualize the distributions of numerical features.
@@ -259,7 +281,18 @@ def plot_feature_correlation(dataframe, target_variable, save_path):
     plt.close()
 
 
-def normality_check(data, target_variable, save_path):
+def plot_normality(data, target_variable, save_path):
+    """
+    Visualizes the distribution of numerical variables in the given dataset and checks for normality.
+
+    Args:
+        data (DataFrame): The dataset containing the numerical variables.
+        target_variable (str): The name of the target variable.
+        save_path (str): The file path where the plot will be saved.
+
+    Returns:
+        None
+    """
     df = data.select_dtypes(include=["float64", "int64"])
     num_plots = len(df.columns)
     num_cols = 4  # Number of plots per row
@@ -312,26 +345,33 @@ def normality_check(data, target_variable, save_path):
     plt.close()
 
 
-def plot_missing_values(data,data_filename):
+def plot_missing_values(data, data_filename):
+    """
+    Plots the total count of missing values for each column in the dataset.
 
+    Args:
+        data (DataFrame): The dataset containing missing values.
+        data_filename (str): The name of the data file.
+
+    Returns:
+        None
+    """
     filename_prefix = data_filename.split(".")[0]
     plot_filename = "missing_values_stats.png"
-    save_path = os.path.join("data_statistics",filename_prefix,plot_filename)
+    save_path = os.path.join("data_statistics", filename_prefix, plot_filename)
 
     total = data.isnull().sum().sort_values(ascending=False)
 
-    total[total > 1].plot(kind="bar", figsize = (8,6), color="#3ac5fe", fontsize = 10)
+    total[total > 1].plot(kind="bar", figsize=(8, 6), color="#3ac5fe", fontsize=10)
 
-    plt.xlabel("Columns", fontsize = 20)
-    plt.ylabel("Count", fontsize = 20)
-    plt.title("Total Missing Values", fontsize = 20)
+    plt.xlabel("Columns", fontsize=20)
+    plt.ylabel("Count", fontsize=20)
+    plt.title("Total Missing Values", fontsize=20)
 
     plt.tight_layout()
 
     # Save the plot
     plt.savefig(save_path)
-
-    print("Missing values plot saved")
 
     plt.close()
 
@@ -384,4 +424,6 @@ def data_analysis_workflow(data_file_name, target_variable=False, sep=False):
         # Plotting feature correlation
         plot_feature_correlation(data, target_variable, corr_feature_stats_filepath)
 
-    normality_check(data, target_variable, norm_stats_filepath)
+    plot_normality(data, target_variable, norm_stats_filepath)
+
+    plot_missing_values(data, data_file_name)
