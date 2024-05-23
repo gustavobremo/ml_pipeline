@@ -54,6 +54,100 @@ def describe_dataframe(data):
     return description
 
 
+def count_categorical(data):
+
+    """
+    Counts the occurrences of each category in the categorical columns of a DataFrame.
+
+    Parameters:
+    data (pd.DataFrame): The input DataFrame.
+
+    Returns:
+    dict: A dictionary where the keys are the column names and the values are the counts of unique values in each categorical column.
+    """
+    categorical_data_counts = {}
+
+    df = data.select_dtypes(include=["object"]) 
+
+    categorical_columns = df.columns
+
+    for column in categorical_columns:
+        categorical_data_counts[column] = df[column].value_counts()
+    
+    return categorical_data_counts
+
+
+def plot_categorical_grouped_boxplots(data, column_list):
+    """
+    Plots a grouped boxplot for categorical data.
+
+    Parameters:
+    data (pd.DataFrame): The input DataFrame containing the data.
+    column_list (list): List of column names to be included in the plot.
+                        Must include exactly one categorical column and at least one numerical column.
+
+    Returns:
+    None
+    """
+    df = data[column_list]
+
+    categorical_columns = df.select_dtypes(include=["object"]).columns.tolist()
+
+    # Check if there is exactly one categorical column
+    if len(categorical_columns) != 1:
+        raise ValueError("The column_list must contain exactly one categorical column.")
+    else:
+        categorical_column = categorical_columns[0]
+
+    # Check if there is at least one numerical column
+    numerical_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+    if not numerical_columns:
+        raise ValueError("The column_list must contain at least one numerical column.")
+
+    plot_data = (df
+                 .set_index(categorical_column)
+                 .stack()
+                 .to_frame()
+                 .reset_index()
+                 .rename(columns={0: 'Feature Values', 'level_1': 'Features'})
+                 )
+
+    sns.boxplot(data=plot_data, x="Features", y="Feature Values", hue=categorical_column, palette="pastel")
+    plt.show()
+
+
+def plot_pairplot(data, column_list):
+    """
+    Plots a pairplot for visualizing relationships between numerical columns, with hue specified by a categorical column.
+
+    Parameters:
+    data (pd.DataFrame): The input DataFrame containing the data.
+    column_list (list): List of column names to be included in the plot.
+                        Must include exactly one categorical column and at least one numerical column.
+
+    Returns:
+    None
+    """
+    df = data[column_list]
+
+    categorical_columns = df.select_dtypes(include=["object"]).columns.tolist()
+
+    # Check if there is exactly one categorical column
+    if len(categorical_columns) != 1:
+        raise ValueError("The column_list must contain exactly one categorical column.")
+    else:
+        categorical_column = categorical_columns[0]
+
+    # Check if there is at least one numerical column
+    numerical_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+    if not numerical_columns:
+        raise ValueError("The column_list must contain at least one numerical column.")
+
+    sns.set_context('talk')
+    sns.pairplot(df, hue=categorical_column, palette="pastel")
+    plt.show()
+
+
 def plot_numerical_distributions(data, save_path):
     """
     Plot boxplots to visualize the distributions of numerical features.
